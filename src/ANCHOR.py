@@ -33,10 +33,10 @@ if __name__ == "__main__":
 	d_std = df_anchor.std().to_dict()
 	
 	o = open(output,'w')
-	for k in X:
-		o.write(k +'\tObserved\tCounts\t' + str(variant_counts[k]))
-		o.write(k +'\tANCHOR\tMean\t' + str(d_mean[k]))
-		o.write(k +'\tANCHOR\tSD\t' + str(d_std[k]))
-	o.write(k +'\tNH\t' + str(NH))
-	o.write(k +'\tNL\t' + str(NH))
+	for k in variant_counts:
+		o.write(k +'\tObserved\tCounts\t' + str(variant_counts[k])+"\n")
+		o.write(k +'\tANCHOR\tMean\t' + str(d_mean[k])+"\n")
+		o.write(k +'\tANCHOR\tSD\t' + str(d_std[k])+"\n")
+	o.write('NH\t' + str(NL)+"\n")
+	o.write('NL\t' + str(NH)+"\n")
 	o.close()
