@@ -1,61 +1,42 @@
 from ANCHOR_Utils import *
-import multiprocessing as mpl
+import argparse as ap
 
-def Job(args):
-	graph, bubbles, sample, Bodysite, NL, NH = args[0], args[1], args[2], args[3], args[4], args[5]
-	G = nx.read_gml(graph)
-	bubbles = open(bubbles).readlines()
+if __name__ == "__main__":
+	parser = ap.ArgumentParser(description="ANCHOR: vAriant Normalization by Coverage and deptH Of Reads. "+
+											"ANCHOR is a statistical framework to compare the variants detected by MetaCarvel"+
+											" from two samples of different depths of coverages")
+	parser.add_argument("-g", "--graph", help="Path to the oriented.gml obtained by running MetaCarvel.", required=True)
+	parser.add_argument("-b", "--bubbles", help="Path to the bubbles.txt obtained by running MetaCarvel.", required=True)
+	parser.add_argument("-o", "--output", help="File to write outputs to.", required=True)
+	parser.add_argument("-n", "--NL", help="Number of reads you want to downsample to.", required=True)
+	parser.add_argument("-N", "--NH", help="Number of reads in the sample.", required=True)
+	parser.add_argument("-m", "--matepair_support", help="Number of mates used to link two contigs. (default=3)", required=False, default = "3")
+	parser.add_argument("-x", "--bootstrap", help="Number of times to run ANCHOR. (default=1000)", required=False, default = "1000")
+	
+	args = parser.parse_args()
+
+	graphpath = args.graph
+	bubblespath = args.bubbles
+	output = args.output
+	NL = int(args.NL)
+	NH = int(args.NH)
+	m = int(args.matepair_support)
+	bootstrap_support = int(args.bootstrap)
+
+	G = nx.read_gml(graphpath)
+	bubbles = open(bubblespath).readlines()
 	p = NL/(1.0*NH)
 
-	X = Get_Bubble_Counts(G, bubbles)
-	df_anchor = ANCHOR(G, bubbles, p)
+	variant_counts = Get_Bubble_Counts(G, bubbles)
+	df_anchor = ANCHOR(G, bubbles, p, m, bootstrap_support)
 	d_mean = df_anchor.mean().to_dict()
 	d_std = df_anchor.std().to_dict()
-	d = {}
-
+	
+	o = open(output,'w')
 	for k in X:
-		d[(k,'Observed','Counts')] = X[k]
-		d[(k,'Anchor','Mean')] = d_mean[k]
-		d[(k,'Anchor','Std')] = d_std[k]
-		d[('Sample','','')] = sample
-		d[('Bodysite','','')] = Bodysite
-		d[('NH','','')] = NH
-		d[('NL','','')] = NL
-	return d
-		
-bodysites = ['stool','buccal_mucosa','supragingival_plaque','tongue_dorsum']
-
-data_dir = '/fs/cbcb-lab/mpop/MetaCarvel_paper/hmp_scaffolds/'
-outpath = '/fs/cbcb-scratch/hsmurali/Motif-Analysis/Data/ANCHOR/'
-read_counts = '/fs/cbcb-scratch/hsmurali/Motif-Analysis/Data/ANCHOR/metacarvel_sample_feature_counts.xlsx'
-num_threads = 32
-
-df_read_counts = pd.read_excel(read_counts)
-df_grp = df_read_counts.groupby('BODYSITE').median()
-df_grp = df_grp.loc[bodysites]
-NL = df_grp['READ_COUNT_R1'].min()
-
-print(df_grp)
-print(NL)
-
-df_read_counts = df_read_counts.set_index(['BODYSITE'])
-multithread_params = []
-
-for b in bodysites:
-	df_sel = df_read_counts.loc[b]
-	samples = df_sel['#SAMPLE'].tolist()
-	Read_Counts = df_sel['READ_COUNT_R1'].tolist()
-	for i in range(len(samples)):
-		graph_path = data_dir+b+'/'+samples[i]+'/'+samples[i]+'_scaffolds/oriented.gml'
-		bubbles_path = data_dir+b+'/'+samples[i]+'/'+samples[i]+'_scaffolds/bubbles.txt'
-		args = (graph_path, bubbles_path, b, samples[i], NL, Read_Counts[i])
-		multithread_params.append(args)
-
-pool = mpl.Pool(int(num_threads))
-result = pool.map(func=Job, iterable=multithread_params)
-pool.close()
-pool.join()
-
-df = pd.DataFrame(result)
-df.columns = pd.MultiIndex.from_tuples(df.columns)
-df.to_excel(outpath+"/ANCHOR.counts.xlsx")
+		o.write(k +'\tObserved\tCounts\t' + str(variant_counts[k]))
+		o.write(k +'\tANCHOR\tMean\t' + str(d_mean[k]))
+		o.write(k +'\tANCHOR\tSD\t' + str(d_std[k]))
+	o.write(k +'\tNH\t' + str(NH))
+	o.write(k +'\tNL\t' + str(NH))
+	o.close()
