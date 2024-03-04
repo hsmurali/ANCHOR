@@ -5,11 +5,28 @@ ANCHOR is a statistical method to determine the mean number of variants that wou
     <p align="center"><img src="img/ANCHOR.png" width=750 /></p>
 </tr>
 
-To run ```ANCHOR``` simply include the file src/ANCHOR_Utils.py and to calculate the number of bubbles, call the function
+To run ```ANCHOR``` simply run ```ANCHOR.py```
 ```
-ANCHOR(Graph, bubbles, p, min_matepair=3, bootstrap = 1000)
-Where,
-Graph is the oriented.gml obtained from running MetaCarvel
-bubbles is the list of bubbles (bubbles.txt) obtained from running  MetaCarvel
-p = NL/NH, where NL is the number of reads to downsample to and NH is the number of reads in the observed sample. 
+ANCHOR: vAriant Normalization by Coverage and deptH Of Reads. ANCHOR is a
+statistical framework to compare the variants detected by MetaCarvel from two
+samples of different depths of coverages
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        A fasta file of sequences to cluster
+  -g GRAPH, --graph GRAPH
+                        Path to the oriented.gml obtained by running
+                        MetaCarvel.
+  -b BUBBLES, --bubbles BUBBLES
+                        Path to the bubbles.txt obtained by running
+                        MetaCarvel.
+  -o OUTPUT, --output OUTPUT
+                        File to write outputs to.
+  -n NL, --NL NL        Number of reads you want to downsample to.
+  -N NH, --NH NH        Number of reads in the sample.
+  -m MATEPAIR_SUPPORT, --matepair_support MATEPAIR_SUPPORT
+                        Number of mates used to link two contigs. (default=3)
+  -x BOOTSTRAP, --bootstrap BOOTSTRAP
+                        Number of times to run ANCHOR
 ```
