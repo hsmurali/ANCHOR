@@ -5,3 +5,11 @@ ANCHOR is a statistical method to determine the mean number of variants that wou
     <p align="center"><img src="img/ANCHOR.png" width=750 /></p>
 </tr>
 
+To run ```ANCHOR``` simply include the file src/ANCHOR_Utils.py and to calculate the number of bubbles, call the function
+```
+ANCHOR(Graph, bubbles, p, min_matepair=3, bootstrap = 1000)
+Where,
+Graph is the oriented.gml obtained from running MetaCarvel
+bubbles is the list of bubbles (bubbles.txt) obtained from running  MetaCarvel
+p = NL/NH, where NL is the number of reads to downsample to and NH is the number of reads in the observed sample. 
+```
